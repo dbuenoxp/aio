@@ -1,6 +1,7 @@
 import React from 'react';
 import { StyleSheet, Platform } from 'react-native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { MainTabParamList } from './types';
 import { HomeScreen } from '../features/home/HomeScreen';
@@ -15,6 +16,13 @@ const Tab = createBottomTabNavigator<MainTabParamList>();
 
 export const AppTabNavigator: React.FC = () => {
   const { palette } = useThemeStore();
+  const insets = useSafeAreaInsets();
+
+  const bottomPadding = Math.max(
+    insets.bottom,
+    Platform.OS === 'ios' ? 24 : 12
+  );
+  const tabBarHeight = 60 + bottomPadding;
 
   return (
     <Tab.Navigator
@@ -27,6 +35,8 @@ export const AppTabNavigator: React.FC = () => {
         tabBarStyle: [
           styles.tabBar,
           {
+            height: tabBarHeight,
+            paddingBottom: bottomPadding,
             backgroundColor: palette.isDark
               ? palette.background
               : palette.surface,
@@ -85,9 +95,7 @@ export const AppTabNavigator: React.FC = () => {
 const styles = StyleSheet.create({
   tabBar: {
     borderTopWidth: 1,
-    height: Platform.OS === 'ios' ? 88 : 64,
     paddingTop: 8,
-    paddingBottom: Platform.OS === 'ios' ? 26 : 8,
     elevation: 10,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: -4 },

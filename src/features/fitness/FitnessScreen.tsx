@@ -4,9 +4,9 @@ import {
   Text,
   StyleSheet,
   ScrollView,
-  SafeAreaView,
   TouchableOpacity,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
 import { Ionicons } from '@expo/vector-icons';
 import { useFitnessStore } from '../../store/useFitnessStore';
@@ -49,7 +49,7 @@ export const FitnessScreen: React.FC = () => {
     .reduce((acc, w) => acc + w.durationMinutes, 0);
 
   return (
-    <SafeAreaView style={styles.safeArea}>
+    <SafeAreaView style={styles.safeArea} edges={['top', 'left', 'right']}>
       <StatusBar style={colors.isDark ? 'light' : 'dark'} />
 
       <Header

@@ -8,6 +8,7 @@ import {
   Pressable,
 } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { LinearGradient } from 'expo-linear-gradient';
 import { RootStackParamList } from '../../navigation/types';
@@ -21,6 +22,7 @@ type SplashScreenProps = {
 
 export const SplashScreen: React.FC<SplashScreenProps> = ({ navigation }) => {
   const { width } = useWindowDimensions();
+  const insets = useSafeAreaInsets();
   const heroWidth = Math.min(width * 0.94, 540);
   const heroHeight = Math.round(heroWidth * (1300 / 1620));
   const glowSize = Math.min(width * 0.85, 420);
@@ -137,7 +139,12 @@ export const SplashScreen: React.FC<SplashScreenProps> = ({ navigation }) => {
       </Animated.View>
 
       {/* Minimalist Subtitle & Status */}
-      <Animated.View style={[styles.bottomInfo, { opacity: fadeAnim }]}>
+      <Animated.View
+        style={[
+          styles.bottomInfo,
+          { opacity: fadeAnim, bottom: Math.max(40, insets.bottom + 24) },
+        ]}
+      >
         <Text style={styles.slogan}>
           Tu vida en sincronía • Productividad, Finanzas & Bienestar
         </Text>
@@ -147,7 +154,7 @@ export const SplashScreen: React.FC<SplashScreenProps> = ({ navigation }) => {
           <Text style={styles.skipHint}>Toca para continuar</Text>
         </View>
 
-        <Text style={styles.version}>v1.0.0 • Offline-First Experience</Text>
+        <Text style={styles.version}>v1.1.0 • Offline-First Experience</Text>
       </Animated.View>
     </Pressable>
   );

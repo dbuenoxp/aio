@@ -4,9 +4,9 @@ import {
   Text,
   StyleSheet,
   FlatList,
-  SafeAreaView,
   TouchableOpacity,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
 import { Ionicons } from '@expo/vector-icons';
 import { useTaskStore } from '../../store/useTaskStore';
@@ -69,8 +69,8 @@ export const TasksScreen: React.FC = () => {
   const activeAlarmsCount = tasks.filter((t) => !t.completed && t.hasAlarm).length;
 
   return (
-    <SafeAreaView style={styles.safeArea}>
-      <StatusBar style={colors.isDark ? 'light' : 'dark'} />
+    <SafeAreaView style={styles.safeArea} edges={['top', 'left', 'right']}>
+      <StatusBar style={palette.isDark ? 'light' : 'dark'} />
 
       <Header
         title="Task Hub"

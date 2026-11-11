@@ -4,11 +4,11 @@ import {
   Text,
   StyleSheet,
   ScrollView,
-  SafeAreaView,
   TouchableOpacity,
   RefreshControl,
   Image,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
 import { BottomTabNavigationProp } from '@react-navigation/bottom-tabs';
 import { Ionicons } from '@expo/vector-icons';
@@ -195,8 +195,8 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
   const productivityScore = monthTasks.length > 0 ? taskProgress : 100;
 
   return (
-    <SafeAreaView style={styles.safeArea}>
-      <StatusBar style={colors.isDark ? 'light' : 'dark'} />
+    <SafeAreaView style={styles.safeArea} edges={['top', 'left', 'right']}>
+      <StatusBar style={palette.isDark ? 'light' : 'dark'} />
 
       {/* Top User Bar */}
       <View style={styles.topUserBar}>

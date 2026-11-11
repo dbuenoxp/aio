@@ -10,6 +10,7 @@ import {
   ScrollView,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { borderRadius, typography, spacing } from '../../theme';
 import { useThemeStore } from '../../store/useThemeStore';
 
@@ -31,6 +32,11 @@ export const ModalContainer: React.FC<ModalContainerProps> = ({
   footer,
 }) => {
   const { palette } = useThemeStore();
+  const insets = useSafeAreaInsets();
+  const bottomPadding = Math.max(
+    insets.bottom + 14,
+    Platform.OS === 'ios' ? 34 : 20
+  );
 
   return (
     <Modal
@@ -43,6 +49,7 @@ export const ModalContainer: React.FC<ModalContainerProps> = ({
         style={[
           styles.backdrop,
           {
+            paddingTop: Math.max(insets.top + 12, 24),
             backgroundColor: palette.isDark
               ? 'rgba(0, 0, 0, 0.65)'
               : 'rgba(15, 23, 42, 0.45)',
@@ -65,6 +72,7 @@ export const ModalContainer: React.FC<ModalContainerProps> = ({
             style={[
               styles.contentCard,
               {
+                paddingBottom: bottomPadding,
                 backgroundColor: palette.surface,
                 borderColor: palette.borderLight,
               },
