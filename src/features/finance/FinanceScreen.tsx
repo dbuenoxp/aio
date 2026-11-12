@@ -100,13 +100,11 @@ export const FinanceScreen: React.FC = () => {
 
         monthTxCount++;
         const count = Math.max(1, (tx.involvedPeople || []).length);
-        const totalAmt = tx.totalAmount ?? tx.amount;
 
-        if (tx.type === 'expense') {
-          const othersTotal = Math.max(0, totalAmt - tx.amount);
-          monthPersonShare += othersTotal / count;
-        } else {
+        if (tx.type === 'income') {
           monthPersonShare += tx.amount / count;
+        } else {
+          monthPersonShare -= tx.amount / count;
         }
       }
 

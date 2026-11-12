@@ -114,18 +114,9 @@ export const CreateTransactionModal: React.FC<CreateTransactionModalProps> = ({
     100,
     Math.max(0, parseFloat(myPercentage) || 0)
   );
-  const effectivePercentage = type === 'expense' ? parsedPercentage : 100;
-  const myShareAmount =
-    type === 'expense'
-      ? Number(((parsedTotalAmount * effectivePercentage) / 100).toFixed(2))
-      : parsedTotalAmount;
-  const othersShareAmount = Math.max(
-    0,
-    Number((parsedTotalAmount - myShareAmount).toFixed(2))
-  );
-  const othersPercentage = Math.max(
-    0,
-    Number((100 - effectivePercentage).toFixed(2))
+  const effectivePercentage = parsedPercentage;
+  const myShareAmount = Number(
+    ((parsedTotalAmount * effectivePercentage) / 100).toFixed(2)
   );
 
   const handleAddPerson = () => {
@@ -209,12 +200,11 @@ export const CreateTransactionModal: React.FC<CreateTransactionModalProps> = ({
 
   const handleSave = async () => {
     if (isNaN(parsedTotalAmount) || parsedTotalAmount <= 0) return;
-    if (type === 'expense' && effectivePercentage <= 0) return;
+    if (effectivePercentage <= 0) return;
 
     setLoading(true);
     try {
-      const finalAmount =
-        type === 'expense' ? myShareAmount : parsedTotalAmount;
+      const finalAmount = myShareAmount;
 
       if (selectedCurrency !== currency) {
         setCurrency(selectedCurrency);
@@ -224,7 +214,7 @@ export const CreateTransactionModal: React.FC<CreateTransactionModalProps> = ({
         type,
         amount: finalAmount,
         totalAmount: parsedTotalAmount,
-        myPercentage: type === 'expense' ? effectivePercentage : 100,
+        myPercentage: effectivePercentage,
         involvedPeople: effectivePeople,
         category,
         description:
@@ -246,22 +236,22 @@ export const CreateTransactionModal: React.FC<CreateTransactionModalProps> = ({
       visible={visible}
       onClose={onClose}
       title="Nueva Transacción"
-      subtitle="Registra ingresos y egresos con su categoría"
+      subtitle="Registra ingresos (+ suma) y gastos (- resta) con su categoría"
       footer={
         <CustomButton
           title={
             type === 'income'
-              ? `Registrar Ingreso (${currencySymbol}${(parsedTotalAmount || 0).toFixed(2)})`
+              ? `Registrar Ingreso (+${currencySymbol}${(myShareAmount || 0).toFixed(2)})`
               : effectivePercentage < 100 && parsedTotalAmount > 0
-              ? `Registrar Mi Gasto (${currencySymbol}${myShareAmount.toFixed(2)})`
-              : 'Registrar Gasto'
+              ? `Registrar Gasto (-${currencySymbol}${myShareAmount.toFixed(2)})`
+              : `Registrar Gasto (-${currencySymbol}${(myShareAmount || 0).toFixed(2)})`
           }
           onPress={handleSave}
           loading={loading}
           disabled={
             !amount.trim() ||
             parsedTotalAmount <= 0 ||
-            (type === 'expense' && effectivePercentage <= 0)
+            effectivePercentage <= 0
           }
           variant={type === 'income' ? 'mint' : 'danger'}
         />
@@ -287,7 +277,7 @@ export const CreateTransactionModal: React.FC<CreateTransactionModalProps> = ({
               type === 'expense' && styles.typeTextActive,
             ]}
           >
-            Gasto / Egreso
+            Gasto / Debo (-)
           </Text>
         </TouchableOpacity>
 
@@ -295,6 +285,9 @@ export const CreateTransactionModal: React.FC<CreateTransactionModalProps> = ({
           onPress={() => {
             setType('income');
             setCategory('Salario');
+            if (!hasManuallySetPercentage) {
+              setMyPercentage('100');
+            }
           }}
           style={[styles.typeButton, type === 'income' && styles.typeIncomeActive]}
         >
@@ -309,7 +302,7 @@ export const CreateTransactionModal: React.FC<CreateTransactionModalProps> = ({
               type === 'income' && styles.typeTextActive,
             ]}
           >
-            Ingreso
+            Ingreso / Me debe (+)
           </Text>
         </TouchableOpacity>
       </View>
@@ -402,8 +395,8 @@ export const CreateTransactionModal: React.FC<CreateTransactionModalProps> = ({
               </Text>
               <Text style={styles.peopleSectionSubtitle}>
                 {type === 'expense'
-                  ? '¿Con quién compartes este gasto?'
-                  : '¿Quién te paga o te debe este ingreso?'}
+                  ? 'Se restará (-) en "Debo a [Persona]" al sacar cuenta'
+                  : 'Se sumará (+) en "Deuda de [Persona]" al sacar cuenta'}
               </Text>
             </View>
           </View>
@@ -517,127 +510,102 @@ export const CreateTransactionModal: React.FC<CreateTransactionModalProps> = ({
           </View>
         )}
 
-        {/* Expense Share Percentage Selector (% que me corresponde) */}
-        {type === 'expense' && (
-          <View style={styles.percentageContainer}>
-            <View style={styles.percentageDivider} />
+        {/* Share Percentage Selector (for both Gasto and Ingreso) */}
+        <View style={styles.percentageContainer}>
+          <View style={styles.percentageDivider} />
 
-            <View style={styles.percentageHeaderRow}>
-              <View style={styles.percentageLabelGroup}>
-                <Ionicons
-                  name="pie-chart-outline"
-                  size={15}
-                  color={colors.cyanLight}
-                />
-                <Text style={styles.percentageTitle}>
-                  % QUE ME CORRESPONDE DEL GASTO
-                </Text>
-              </View>
-
-              <View style={styles.percentageCustomInputWrap}>
-                <TextInput
-                  style={styles.percentageCustomInput}
-                  value={myPercentage}
-                  onChangeText={handleCustomPercentageChange}
-                  keyboardType="decimal-pad"
-                  maxLength={5}
-                  placeholder="100"
-                  placeholderTextColor={colors.textMuted}
-                />
-                <Text style={styles.percentageSymbol}>%</Text>
-              </View>
-            </View>
-
-            {/* Quick Percentage Presets */}
-            <View style={styles.percentagePresetsRow}>
-              {PERCENTAGE_PRESETS.map((preset) => {
-                const isSelected =
-                  Math.abs(effectivePercentage - preset.value) < 0.05;
-                return (
-                  <TouchableOpacity
-                    key={preset.label}
-                    onPress={() => handleSelectPercentagePreset(preset.value)}
-                    style={[
-                      styles.percentagePresetChip,
-                      isSelected && styles.percentagePresetChipActive,
-                    ]}
-                    activeOpacity={0.7}
-                  >
-                    <Text
-                      style={[
-                        styles.percentagePresetText,
-                        isSelected && styles.percentagePresetTextActive,
-                      ]}
-                    >
-                      {preset.label}
-                    </Text>
-                  </TouchableOpacity>
-                );
-              })}
-            </View>
-
-            {/* Live Split Breakdown Summary */}
-            {parsedTotalAmount > 0 &&
-              (effectivePercentage < 100 || effectivePeople.length > 0) && (
-                <View style={styles.splitSummaryBox}>
-                  <View style={styles.splitSummaryRow}>
-                    <Text style={styles.splitSummaryLabel}>Monto total:</Text>
-                    <Text style={styles.splitSummaryTotalValue}>
-                      {currencySymbol}
-                      {parsedTotalAmount.toFixed(2)}
-                    </Text>
-                  </View>
-
-                  <View style={styles.splitSummaryRow}>
-                    <Text style={styles.splitSummaryMyLabel}>
-                      Tu parte ({effectivePercentage}%):
-                    </Text>
-                    <Text style={styles.splitSummaryMyValue}>
-                      {currencySymbol}
-                      {myShareAmount.toFixed(2)}
-                    </Text>
-                  </View>
-
-                  {effectivePercentage < 100 && (
-                    <View style={styles.splitSummaryRow}>
-                      <Text style={styles.splitSummaryOthersLabel}>
-                        {effectivePeople.length > 0
-                          ? `Parte de ${effectivePeople.join(', ')} (${othersPercentage}%):`
-                          : `Parte de otros (${othersPercentage}%):`}
-                      </Text>
-                      <Text style={styles.splitSummaryOthersValue}>
-                        {currencySymbol}
-                        {othersShareAmount.toFixed(2)}
-                        {effectivePeople.length > 1
-                          ? ` (${currencySymbol}${(
-                              othersShareAmount / effectivePeople.length
-                            ).toFixed(2)} c/u)`
-                          : ''}
-                      </Text>
-                    </View>
-                  )}
-                </View>
-              )}
-          </View>
-        )}
-
-        {/* Income involved person summary */}
-        {type === 'income' && effectivePeople.length > 0 && (
-          <View style={styles.incomePersonSummaryBox}>
-            <Ionicons
-              name="information-circle-outline"
-              size={15}
-              color={colors.mint}
-              style={{ marginRight: 6 }}
-            />
-            <Text style={styles.incomePersonSummaryText}>
-              Ingreso o deuda asociada a:{' '}
-              <Text style={{ fontWeight: '700', color: colors.textPrimary }}>
-                {effectivePeople.join(', ')}
+          <View style={styles.percentageHeaderRow}>
+            <View style={styles.percentageLabelGroup}>
+              <Ionicons
+                name="pie-chart-outline"
+                size={15}
+                color={type === 'income' ? colors.mint : colors.cyanLight}
+              />
+              <Text style={styles.percentageTitle}>
+                {type === 'income'
+                  ? '% DEL RECIBO QUE ME DEBE / SUMA (+)'
+                  : '% QUE ME CORRESPONDE / RESTA (-)'}
               </Text>
-            </Text>
+            </View>
+
+            <View style={styles.percentageCustomInputWrap}>
+              <TextInput
+                style={styles.percentageCustomInput}
+                value={myPercentage}
+                onChangeText={handleCustomPercentageChange}
+                keyboardType="decimal-pad"
+                maxLength={5}
+                placeholder="100"
+                placeholderTextColor={colors.textMuted}
+              />
+              <Text style={styles.percentageSymbol}>%</Text>
+            </View>
           </View>
-        )}
+
+          {/* Quick Percentage Presets */}
+          <View style={styles.percentagePresetsRow}>
+            {PERCENTAGE_PRESETS.map((preset) => {
+              const isSelected =
+                Math.abs(effectivePercentage - preset.value) < 0.05;
+              return (
+                <TouchableOpacity
+                  key={preset.label}
+                  onPress={() => handleSelectPercentagePreset(preset.value)}
+                  style={[
+                    styles.percentagePresetChip,
+                    isSelected && styles.percentagePresetChipActive,
+                  ]}
+                  activeOpacity={0.7}
+                >
+                  <Text
+                    style={[
+                      styles.percentagePresetText,
+                      isSelected && styles.percentagePresetTextActive,
+                    ]}
+                  >
+                    {preset.label}
+                  </Text>
+                </TouchableOpacity>
+              );
+            })}
+          </View>
+
+          {/* Live Split Breakdown Summary */}
+          {parsedTotalAmount > 0 &&
+            (effectivePercentage < 100 || effectivePeople.length > 0) && (
+              <View style={styles.splitSummaryBox}>
+                <View style={styles.splitSummaryRow}>
+                  <Text style={styles.splitSummaryLabel}>Monto total recibo:</Text>
+                  <Text style={styles.splitSummaryTotalValue}>
+                    {currencySymbol}
+                    {parsedTotalAmount.toFixed(2)}
+                  </Text>
+                </View>
+
+                <View style={styles.splitSummaryRow}>
+                  <Text style={styles.splitSummaryMyLabel}>
+                    {type === 'income'
+                      ? effectivePeople.length > 0
+                        ? `Suma a Deuda de ${effectivePeople.join(', ')} (${effectivePercentage}%):`
+                        : `Monto a registrar (${effectivePercentage}%):`
+                      : effectivePeople.length > 0
+                      ? `Se resta en Debo a ${effectivePeople.join(', ')} (${effectivePercentage}%):`
+                      : `Tu parte (${effectivePercentage}%):`}
+                  </Text>
+                  <Text
+                    style={[
+                      styles.splitSummaryMyValue,
+                      { color: type === 'income' ? colors.mint : colors.danger },
+                    ]}
+                  >
+                    {type === 'income' ? '+' : '-'}
+                    {currencySymbol}
+                    {myShareAmount.toFixed(2)}
+                  </Text>
+                </View>
+              </View>
+            )}
+        </View>
       </View>
 
       {/* Category selector */}

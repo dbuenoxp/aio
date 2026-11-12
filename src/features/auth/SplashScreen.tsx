@@ -154,7 +154,7 @@ export const SplashScreen: React.FC<SplashScreenProps> = ({ navigation }) => {
           <Text style={styles.skipHint}>Toca para continuar</Text>
         </View>
 
-        <Text style={styles.version}>v1.1.0 • Offline-First Experience</Text>
+        <Text style={styles.version}>v1.2.0 • Offline-First Experience</Text>
       </Animated.View>
     </Pressable>
   );

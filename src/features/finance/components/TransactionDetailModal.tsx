@@ -65,14 +65,6 @@ export const TransactionDetailModal: React.FC<TransactionDetailModalProps> = ({
   );
 
   const people = transaction.involvedPeople || [];
-  const perPersonExpenseAmount =
-    people.length > 0
-      ? Number((othersTotalAmount / people.length).toFixed(2))
-      : othersTotalAmount;
-  const perPersonPercentage =
-    people.length > 0
-      ? Number((othersPercentage / people.length).toFixed(2))
-      : othersPercentage;
   const perPersonIncomeAmount =
     people.length > 0
       ? Number((transaction.amount / people.length).toFixed(2))
@@ -315,10 +307,8 @@ export const TransactionDetailModal: React.FC<TransactionDetailModalProps> = ({
                     <Text style={styles.personName}>{person}</Text>
                     <Text style={styles.personRoleSub}>
                       {isIncome
-                        ? 'Deudor / Pagador asociado'
-                        : isSplitExpense
-                        ? `Le corresponde el ${perPersonPercentage}% del gasto`
-                        : 'Participante en el gasto'}
+                        ? `Suma (+) a Deuda de ${person.split(' ')[0]}`
+                        : `Se resta (-) en Debo a ${person.split(' ')[0]} (${myPercentage}%)`}
                     </Text>
                   </View>
                 </View>
@@ -327,14 +317,12 @@ export const TransactionDetailModal: React.FC<TransactionDetailModalProps> = ({
                   <Text
                     style={[
                       styles.personShareAmount,
-                      { color: isIncome ? colors.mint : colors.cyanLight },
+                      { color: isIncome ? colors.mint : colors.danger },
                     ]}
                   >
+                    {isIncome ? '+' : '-'}
                     {currencySymbol}
-                    {(isIncome
-                      ? perPersonIncomeAmount
-                      : perPersonExpenseAmount
-                    ).toFixed(2)}
+                    {perPersonIncomeAmount.toFixed(2)}
                   </Text>
                   {onOpenPersonAccount && (
                     <TouchableOpacity

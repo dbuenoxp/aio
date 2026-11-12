@@ -2,7 +2,7 @@
   "expo": {
     "name": "AIO",
     "slug": "AIO",
-    "version": "1.1.0",
+    "version": "1.2.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "dark",
@@ -40,7 +40,8 @@
       "expo-local-authentication",
       "expo-font",
       "expo-video",
-      "expo-status-bar"
+      "expo-status-bar",
+      "expo-sharing"
     ],
     "extra": {
       "eas": {
